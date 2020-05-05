@@ -7,7 +7,7 @@
 // 3. Observable spaghetti
 //  Solution: think in terms of pipelines with computed observables, document patterns.
 // 4. All code for all catalog item types needs to be loaded before we can do anything.
-import { computed, runInAction, trace, observable } from "mobx";
+import { computed, runInAction } from "mobx";
 import moment from "moment";
 import combine from "terriajs-cesium/Source/Core/combine";
 import Ellipsoid from "terriajs-cesium/Source/Core/Ellipsoid";
@@ -37,7 +37,6 @@ import WebMapServiceCatalogItemTraits, {
 } from "../Traits/WebMapServiceCatalogItemTraits";
 import CreateModel from "./CreateModel";
 import createStratumInstance from "./createStratumInstance";
-import CommonStrata from "./CommonStrata";
 import LoadableStratum from "./LoadableStratum";
 import Mappable, { ImageryParts } from "./Mappable";
 import { BaseModel } from "./Model";
@@ -727,17 +726,21 @@ class WebMapServiceCatalogItem
   );
 
   @computed
-  get availableStyleSelectableDimensions(): SelectableDimension | undefined {
-    // Currently this only handles styles for the first layer (hence this.availableStyles[0])
-    if (
-      this.availableStyles.length !== 0 &&
-      this.availableStyles[0].styles.length !== 0
-    ) {
+  get availableStyleSelectableDimensions(): SelectableDimension[] {
+    return filterOutUndefined(this.availableStyles.map((layer, layerIndex) => {
+      if (layer.styles.length < 2) {
+        return
+      }
+      // If multiple layers -> prepend layer name to dimension label
+      const name =
+        this.availableStyles.length > 1
+          ? `${layer.layerName} styles`
+          : `Styles`;
       return {
-        id: `styles-${this.uniqueId}`,
-        name: "Styles",
+        name,
+        id: `${this.uniqueId}-${layer.layerName}-styles`,
         options: filterOutUndefined(
-          this.availableStyles[0].styles.map(function(s) {
+          layer.styles.map(function(s) {
             if (isDefined(s.name)) {
               return {
                 name: s.title || s.name || "",
@@ -748,87 +751,91 @@ class WebMapServiceCatalogItem
         ),
 
         // Set selectedId to value stored in `parameters` trait or the first available value
+        // The `styles` parameter is CSV values, a style for each layer
         selectedId:
-          this.parameters?.styles?.toString() ||
-          this.availableStyles[0].styles[0].name,
+          this.parameters?.styles?.toString()?.split(",")?.[layerIndex] ||
+          layer.styles[0].name,
 
         setDimensionValue: (stratumId: string, newStyle: string) => {
           let newParameters = {
-            styles: newStyle
+            styles: this.availableStyleSelectableDimensions
+              .map(style => style.selectedId || "")
+              .join(",")
           };
           if (isDefined(this.parameters)) {
             newParameters = combine(newParameters, this.parameters);
           }
           runInAction(() => {
-            this.setTrait(CommonStrata.user, "parameters", newParameters);
+            this.setTrait(stratumId, "parameters", newParameters);
           });
         }
       };
-    }
+    }));
   }
 
   @computed
   get availableDimensionSelectableDimensions(): SelectableDimension[] {
-    // Currently this only handles dimensions for the first layer (hence this.availableDimensions[0])
-    if (
-      this.availableDimensions.length !== 0 &&
-      this.availableDimensions[0].dimensions.length !== 0
-    ) {
-      return filterOutUndefined(
-        this.availableDimensions[0].dimensions.map(dim => {
-          if (!isDefined(dim.name)) {
-            return;
-          }
-          return {
-            id: `dimensions-${dim.name}`,
-            name: dim.name,
-            options: dim.values.map(value => {
-              let name = value;
-              // Add units and unitSybol if defined
-              if (typeof dim.units === "string" && dim.units !== "") {
-                if (
-                  typeof dim.unitSymbol === "string" &&
-                  dim.unitSymbol !== ""
-                ) {
-                  name = `${value} (${dim.units} ${dim.unitSymbol})`;
-                } else {
-                  name = `${value} (${dim.units})`;
-                }
+    const dimensions: SelectableDimension[] = [];
+
+    // For each layer -> For each dimension
+    this.availableDimensions.forEach(layer => {
+      layer.dimensions.forEach(dim => {
+        // Only add dimensions if hasn't already been added (multiple layers may have the same dimension)
+        if (
+          !isDefined(dim.name) || dim.values.length < 2 ||
+          dimensions.findIndex(findDim => findDim.name === dim.name) !== -1
+        ) {
+          return;
+        }
+
+        dimensions.push({
+          name: dim.name,
+          id: `${this.uniqueId}-${dim.name}`,
+          options: dim.values.map(value => {
+            let name = value;
+            // Add units and unitSybol if defined
+            if (typeof dim.units === "string" && dim.units !== "") {
+              if (typeof dim.unitSymbol === "string" && dim.unitSymbol !== "") {
+                name = `${value} (${dim.units} ${dim.unitSymbol})`;
+              } else {
+                name = `${value} (${dim.units})`;
               }
-              return {
-                name,
-                id: value
-              };
-            }),
-
-            // Set selectedId to value stored in `parameters` trait, the default value, or the first available value
-            selectedId:
-              this.parameters?.[dim.name]?.toString() ||
-              dim.default ||
-              dim.values[0],
-
-            setDimensionValue: (stratumId: string, newDimension: string) => {
-              let newParameters: any = {};
-
-              newParameters[dim.name!] = newDimension;
-              if (isDefined(this.parameters)) {
-                newParameters = combine(newParameters, this.parameters);
-              }
-              runInAction(() => {
-                this.setTrait(stratumId, "parameters", newParameters);
-              });
             }
-          };
-        })
-      );
-    }
-    return [];
+            return {
+              name,
+              id: value
+            };
+          }),
+
+          // Set selectedId to value stored in `parameters` trait, the default value, or the first available value
+          selectedId:
+            this.parameters?.[dim.name]?.toString() ||
+            dim.default ||
+            dim.values[0],
+
+          setDimensionValue: (stratumId: string, newDimension: string) => {
+            let newParameters: any = {};
+
+            newParameters[dim.name!] = newDimension;
+
+            if (isDefined(this.parameters)) {
+              newParameters = combine(newParameters, this.parameters);
+            }
+            runInAction(() => {
+              this.setTrait(stratumId, "parameters", newParameters);
+            });
+          }
+        });
+      });
+    });
+
+    return dimensions;
   }
 
   @computed
   get selectableDimensions() {
     return filterOutUndefined([
-      this.availableStyleSelectableDimensions,
+      ...this.availableStyleSelectableDimensions,
       ...this.availableDimensionSelectableDimensions
     ]);
   }

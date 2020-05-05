@@ -78,7 +78,7 @@ describe("DimensionSelectorSection", function() {
       );
       wmsItem.setTrait(CommonStrata.definition, "layers", "A,B");
       wmsItem.setTrait(CommonStrata.definition, "parameters", {
-        styles: "contour/ferret",
+        styles: "contour/ferret,shadefill/alg2",
         custom: "Another thing",
         elevation: "-0.59375"
       });
@@ -91,23 +91,37 @@ describe("DimensionSelectorSection", function() {
         const result = getShallowRenderedOutput(section);
         const selects = findAllWithType(result, "select");
         const labels = findAllWithType(result, "label");
-        expect(selects.length).toBe(3);
-        expect(labels.length).toBe(3);
 
-        expect(selects[0].props.name).toContain(`styles-${wmsItem.uniqueId}`);
+        // Expect 2 styles (layer A, layer B) + 3 dimensions (elevation, custom, another)
+        expect(selects.length).toBe(5);
+        expect(labels.length).toBe(5);
+
+        // Check Style A
+        expect(selects[0].props.name).toContain(`${wmsItem.uniqueId}-A-styles`);
         expect(selects[0].props.value).toBe("contour/ferret");
-        const styleOptions = findAllWithType(selects[0], "option");
-        expect(styleOptions.length).toBe(40);
+        expect(findAllWithType(selects[0], "option").length).toBe(40);
 
-        expect(selects[1].props.name).toContain("dimensions-elevation");
-        expect(selects[1].props.value).toBe("-0.59375");
-        const elevationOptions = findAllWithType(selects[1], "option");
-        expect(elevationOptions.length).toBe(16);
+        // Check Style B
+        expect(selects[1].props.name).toContain(`${wmsItem.uniqueId}-B-styles`);
+        expect(selects[1].props.value).toBe("shadefill/alg2");
+        expect(findAllWithType(selects[1], "option").length).toBe(40);
 
-        expect(selects[2].props.name).toContain("dimensions-custom");
-        expect(selects[2].props.value).toBe("Another thing");
-        const customOptions = findAllWithType(selects[2], "option");
-        expect(customOptions.length).toBe(4);
+        // Check elevation dimension
+        expect(selects[2].props.name).toContain(
+          `${wmsItem.uniqueId}-elevation`
+        );
+        expect(selects[2].props.value).toBe("-0.59375");
+        expect(findAllWithType(selects[2], "option").length).toBe(16);
+
+        // Check "custom" dimension
+        expect(selects[3].props.name).toContain(`${wmsItem.uniqueId}-custom`);
+        expect(selects[3].props.value).toBe("Another thing");
+        expect(findAllWithType(selects[3], "option").length).toBe(4);
+
+        // Check "another" dimension
+        expect(selects[4].props.name).toContain(`${wmsItem.uniqueId}-another`);
+        expect(selects[4].props.value).toBe("Second"); // This is the default value set by GetCapabilities
+        expect(findAllWithType(selects[4], "option").length).toBe(3);
       })
       .then(done)
       .catch(done.fail);
