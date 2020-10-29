@@ -11,11 +11,10 @@ import Spacing from "../../Styled/Spacing";
 import MapIconButton from "../MapIconButton/MapIconButton";
 // import MenuPanel from "../StandardUserInterface/customizable/MenuPanel";
 import CleanDropdownPanel from "../CleanDropdownPanel/CleanDropdownPanel";
-import { COMPASS_LOCAL_PROPERTY_KEY } from "../Map/Navigation/Compass";
 
 GyroscopeGuidance.propTypes = {
   viewState: PropTypes.object.isRequired,
-  handleHelp: PropTypes.func,
+  handleHelp: PropTypes.func.isRequired,
   onClose: PropTypes.func.isRequired
 };
 
@@ -126,9 +125,9 @@ function GyroscopeGuidancePanel(props) {
           dragging the map.
         </Text>
         <Spacing bottom={4} />
-        <RawButton onClick={props.onClose}>
+        <RawButton onClick={props.handleHelp}>
           <Text displayBlock primary isLink>
-            Close and don&apos;t show again
+            Find out more about the controls and how to use them.
           </Text>
         </RawButton>
       </Text>
@@ -137,7 +136,7 @@ function GyroscopeGuidancePanel(props) {
 }
 
 GyroscopeGuidancePanel.propTypes = {
-  onClose: PropTypes.func.isRequired
+  handleHelp: PropTypes.func.isRequired
 };
 
 export default function GyroscopeGuidance(props) {
@@ -146,6 +145,15 @@ export default function GyroscopeGuidance(props) {
   const { t } = useTranslation();
   return (
     <>
+      <MapIconButton
+        roundRight
+        neverCollapse
+        onClick={props.handleHelp}
+        iconElement={() => <Icon glyph={Icon.GLYPHS.helpThick} />}
+      >
+        Help
+      </MapIconButton>
+      <Spacing marginRight={1} />
       <div
         css={`
           position: relative;
@@ -155,17 +163,11 @@ export default function GyroscopeGuidance(props) {
           roundLeft
           buttonRef={controlsMapIcon}
           neverCollapse
-          iconElement={() => <Icon glyph={Icon.GLYPHS.questionMark} />}
+          iconElement={() => <Icon glyph={Icon.GLYPHS.controls} />}
           onClick={() => setControlPanelOpen(!controlPanelOpen)}
-          inverted
-          css={`
-            svg {
-              margin: 0px;
-              width: 25px;
-              height: 25px;
-            }
-          `}
-        />
+        >
+          Controls
+        </MapIconButton>
         <div
           onClick={e => e.preventDefault()}
           css={`
@@ -193,23 +195,32 @@ export default function GyroscopeGuidance(props) {
             isOpen={controlPanelOpen}
             onOpenChanged={() => controlPanelOpen}
             // onDismissed={() => setControlPanelOpen(false)}
-            btnTitle={t("compass.guidanceBtnTitle")}
-            btnText={t("compass.guidanceBtnText")}
+            btnTitle={t("settingPanel.btnTitle")}
+            btnText={t("settingPanel.btnText")}
             viewState={props.viewState}
             smallScreen={props.viewState.useSmallScreenInterface}
           >
-            <GyroscopeGuidancePanel
-              onClose={() => {
-                setControlPanelOpen(false);
-                props.onClose();
-                props.viewState.terria.setLocalProperty(
-                  COMPASS_LOCAL_PROPERTY_KEY,
-                  true
-                );
-              }}
-            />
+            <GyroscopeGuidancePanel handleHelp={props.handleHelp} />
           </CleanDropdownPanel>
         </div>
+      </div>
+      <Spacing right={2} />
+      <div
+        css={`
+          transform: scale(0.75);
+          transform-origin: right;
+          svg {
+            width: 15px;
+            height: 15px;
+          }
+        `}
+      >
+        <MapIconButton
+          css={"opacity: 0.8;"}
+          inverted
+          onClick={props.onClose}
+          iconElement={() => <Icon glyph={Icon.GLYPHS.closeLight} />}
+        />
       </div>
     </>
   );

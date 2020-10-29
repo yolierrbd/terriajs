@@ -9,11 +9,10 @@ import LegendTraits from "./LegendTraits";
 import objectArrayTrait from "./objectArrayTrait";
 import SplitterTraits from "./SplitterTraits";
 import anyTrait from "./anyTrait";
+import objectTrait from "./objectTrait";
 import { JsonObject } from "../Core/Json";
-import FeatureInfoTraits from "./FeatureInfoTraits";
 
 export default class ArcGisMapServerCatalogItemTraits extends mixTraits(
-  FeatureInfoTraits,
   SplitterTraits,
   DataCustodianTraits,
   RasterLayerTraits,

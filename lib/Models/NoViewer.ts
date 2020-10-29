@@ -9,7 +9,6 @@ import TerriaViewer from "../ViewModels/TerriaViewer";
 import MapboxVectorTileImageryProvider from "../Map/MapboxVectorTileImageryProvider";
 import LatLonHeight from "../Core/LatLonHeight";
 import { ProviderCoordsMap } from "../Map/PickedFeatures";
-import Feature from "./Feature";
 
 class NoViewer extends GlobeOrMap {
   readonly type = "none";
@@ -32,12 +31,6 @@ class NoViewer extends GlobeOrMap {
   }
 
   notifyRepaintRequired() {}
-
-  pickFromLocation(
-    latLngHeight: LatLonHeight,
-    providerCoords: ProviderCoordsMap,
-    existingFeatures: Feature[]
-  ) {}
 
   /**
    * Return features at a latitude, longitude and (optionally) height for the given imageryLayer

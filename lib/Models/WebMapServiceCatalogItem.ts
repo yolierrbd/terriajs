@@ -60,7 +60,6 @@ import WebMapServiceCapabilities, {
   CapabilitiesLayer,
   getRectangleFromLayer
 } from "./WebMapServiceCapabilities";
-import WebMapServiceCatalogGroup from "./WebMapServiceCatalogGroup";
 
 const dateFormat = require("dateformat");
 
@@ -161,14 +160,8 @@ class GetCapabilitiesStratum extends LoadableStratum(
               );
 
         if (layerStyle !== undefined && layerStyle.legend !== undefined) {
-          let url = this.catalogItem.supportsColorScaleRange
-            ? `${layerStyle.legend.url}&colorscalerange=${this.catalogItem.colorScaleRange}`
-            : layerStyle.legend.url;
           result.push(
-            createStratumInstance(LegendTraits, {
-              url,
-              urlMimeType: layerStyle.legend.urlMimeType
-            })
+            <StratumFromTraits<LegendTraits>>(<unknown>layerStyle.legend)
           );
         }
 
@@ -329,19 +322,7 @@ class GetCapabilitiesStratum extends LoadableStratum(
         {},
         this.capabilitiesLayers.get(this.catalogItem.layersArray[0])
       ) as any;
-
       if (out !== undefined) {
-        // The Dimension object is really weird and has a bunch of stray text in there
-        if ("Dimension" in out) {
-          const goodDimension: any = {};
-          Object.keys(out.Dimension).forEach((k: any) => {
-            if (isNaN(k)) {
-              goodDimension[k] = out.Dimension[k];
-            }
-          });
-          out.Dimension = goodDimension;
-        }
-
         // remove a circular reference to the parent
         delete out._parent;
 
@@ -523,38 +504,6 @@ class GetCapabilitiesStratum extends LoadableStratum(
     }
   }
 
-  // TODO - There is possibly a better way to do this
-  @computed
-  get isThredds(): boolean {
-    if (
-      this.catalogItem.url &&
-      (this.catalogItem.url.indexOf("thredds") > -1 ||
-        this.catalogItem.url.indexOf("tds") > -1)
-    ) {
-      return true;
-    }
-    return false;
-  }
-
-  // TODO - Geoserver also support NCWMS via a plugin, just need to work out how to detect that
-  @computed
-  get isNcWMS(): boolean {
-    if (this.catalogItem.isThredds) return true;
-    return false;
-  }
-
-  @computed
-  get isEsri(): boolean {
-    if (this.catalogItem.url !== undefined)
-      return this.catalogItem.url.indexOf("MapServer/WMSServer") > -1;
-    return false;
-  }
-
-  @computed
-  get supportsColorScaleRange(): boolean {
-    return this.catalogItem.isNcWMS;
-  }
-
   @computed
   get discreteTimes(): { time: string; tag: string | undefined }[] | undefined {
     const result = [];
@@ -690,8 +639,6 @@ class WebMapServiceCatalogItem
     i18next.t("models.webMapServiceCatalogItem.getCapabilitiesUrl")
   ];
 
-  _webMapServiceCatalogGroup: undefined | WebMapServiceCatalogGroup = undefined;
-
   static defaultParameters = {
     transparent: true,
     format: "image/png",
@@ -711,14 +658,6 @@ class WebMapServiceCatalogItem
   // TODO
   get isMappable() {
     return true;
-  }
-
-  @computed
-  get colorScaleRange(): string | undefined {
-    if (this.supportsColorScaleRange) {
-      return `${this.colorScaleMinimum},${this.colorScaleMaximum}`;
-    }
-    return undefined;
   }
 
   async createGetCapabilitiesStratumFromParent(
@@ -991,13 +930,10 @@ class WebMapServiceCatalogItem
         ...dimensionParameters
       };
 
-      if (this.supportsColorScaleRange) {
-        parameters.COLORSCALERANGE = this.colorScaleRange;
-      }
-
       if (isDefined(this.styles)) {
         parameters.styles = this.styles;
       }
+
       Object.assign(parameters, diffModeParameters);
 
       const maximumLevel = scaleDenominatorToLevel(this.minScaleDenominator);
@@ -1010,10 +946,7 @@ class WebMapServiceCatalogItem
         "width",
         "height",
         "bbox",
-        "layers",
-        // This is here as a temporary fix until Cesium implements this fix
-        // https://github.com/CesiumGS/cesium/issues/9021
-        "version"
+        "layers"
       ];
 
       const baseUrl = queryParametersToRemove.reduce(

@@ -62,7 +62,7 @@ const StyledMapIconButton = styled(RawButton)`
   ${props =>
     props.inverted &&
     `
-    background: ${props.theme.charcoalGrey};
+    background: ${props.theme.textBlack};
     color: ${props.theme.textLight};
     svg {
       fill: ${props.theme.textLight};

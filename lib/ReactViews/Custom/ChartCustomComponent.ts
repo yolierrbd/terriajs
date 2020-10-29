@@ -10,9 +10,8 @@ import Chart from "./Chart/FeatureInfoPanelChart";
 import CustomComponent, { ProcessNodeContext } from "./CustomComponent";
 import Model, { BaseModel } from "../../Models/Model";
 import CatalogMemberTraits from "../../Traits/CatalogMemberTraits";
+import CsvCatalogItemTraits from "../../Traits/CsvCatalogItemTraits";
 import hasTraits from "../../Models/hasTraits";
-import SplitItemReference from "../../Models/SplitItemReference";
-import createGuid from "terriajs-cesium/Source/Core/createGuid";
 import DiscretelyTimeVaryingTraits from "../../Traits/DiscretelyTimeVaryingTraits";
 
 export interface ChartCustomComponentAttributes {
@@ -48,11 +47,11 @@ export interface ChartCustomComponentAttributes {
   /** Defaults to 'feature-info'. Can also be 'histogram'. TODO: improve. */
   styling?: string;
 
-  /** Maps column names to titles. Eg. column-titles="time:Time,height:Height,speed:Speed" OR column-titles="Time,Height,Speed" */
-  columnTitles?: ({ name: string; title: string } | string)[];
+  /** Maps column names to titles. Eg. column-names="time:Time,height:Height,speed:Speed" */
+  columnTitles?: { name: string; title: string }[];
 
-  /** Maps column names to units. Eg. column-units="height:m,speed:km/h" OR column-units="m,km/h" */
-  columnUnits?: ({ name: string; units: string } | string)[];
+  /** Maps column names to units. Eg. column-units="height:m,speed:km/h" */
+  columnUnits?: { name: string; units: string }[];
 
   /** The x column name or number to show in the preview, if not the first appropriate column. NOT FULLY IMPLEMENTED YET. */
   xColumn?: string;
@@ -176,21 +175,6 @@ export default abstract class ChartCustomComponent<
     sourceReference: BaseModel | undefined
   ): CatalogItemType;
 
-  /**
-   * For some catalog types, for the chart item to be shareable, it needs to be
-   * constructed as a reference to the original item. This method can be
-   * overriden to make a shareable chart. See SOSChartCustomComponent for an
-   * implementation.
-   *
-   * This method is used only for constructing a chart item to show
-   * in the chart panel, not for the feature info panel chart item.
-   */
-  protected constructShareableCatalogItem?: (
-    id: string | undefined,
-    context: ProcessNodeContext,
-    sourceReference: BaseModel | undefined
-  ) => Promise<CatalogItemType | undefined> = undefined;
-
   private processChart(
     context: ProcessNodeContext,
     node: DomElement,
@@ -206,9 +190,8 @@ export default abstract class ChartCustomComponent<
     const chartDisclaimer = (context.catalogItem as any).chartDisclaimer;
 
     const attrs = this.parseNodeAttrs(node.attribs);
-    const child = children[0];
-    const body: string | undefined =
-      typeof child === "string" ? child : undefined;
+    const csvString: any =
+      typeof children[0] == "string" ? children[0] : undefined;
     const chartElements = [];
     if (!attrs.hideButtons) {
       // Build expand/download buttons
@@ -219,32 +202,30 @@ export default abstract class ChartCustomComponent<
             context.feature.id,
             source
           ].join(":");
+          const item = this.constructCatalogItem(id, context, undefined);
 
-          const itemOrPromise = this.constructShareableCatalogItem
-            ? this.constructShareableCatalogItem(id, context, undefined)
-            : this.constructCatalogItem(id, context, undefined);
+          runInAction(() => {
+            this.setTraitsFromAttrs(item, attrs, i);
 
-          return Promise.resolve(itemOrPromise).then(item => {
-            if (item) {
-              this.setTraitsFromAttrs(item, attrs, i);
-              body && this.setTraitsFromBody?.(item, body);
-              if (
-                hasTraits(
-                  item,
-                  DiscretelyTimeVaryingTraits,
-                  "chartDisclaimer"
-                ) &&
-                chartDisclaimer !== undefined
-              ) {
-                item.setTrait(
-                  CommonStrata.definition,
-                  "chartDisclaimer",
-                  chartDisclaimer
-                );
-              }
+            if (
+              csvString &&
+              hasTraits(item, CsvCatalogItemTraits, "csvString")
+            ) {
+              item.setTrait(CommonStrata.user, "csvString", csvString);
             }
-            return item;
+            if (
+              hasTraits(item, DiscretelyTimeVaryingTraits, "chartDisclaimer") &&
+              chartDisclaimer !== undefined
+            ) {
+              item.setTrait(
+                CommonStrata.definition,
+                "chartDisclaimer",
+                chartDisclaimer
+              );
+            }
           });
+
+          return item;
         }
       );
 
@@ -266,7 +247,13 @@ export default abstract class ChartCustomComponent<
     const chartItem = this.constructCatalogItem(undefined, context, undefined);
     runInAction(() => {
       this.setTraitsFromAttrs(chartItem, attrs, 0);
-      body && this.setTraitsFromBody?.(chartItem, body);
+
+      if (
+        csvString &&
+        hasTraits(chartItem, CsvCatalogItemTraits, "csvString")
+      ) {
+        chartItem.setTrait(CommonStrata.user, "csvString", csvString);
+      }
 
       if (
         hasTraits(chartItem, DiscretelyTimeVaryingTraits, "chartDisclaimer") &&
@@ -315,15 +302,6 @@ export default abstract class ChartCustomComponent<
     attrs: ChartCustomComponentAttributes,
     sourceIndex: number
   ): void;
-
-  /**
-   * Populate  traits in the supplied catalog item with the values from the body of the component.
-   * Assume it will be run in an action.
-   * @param item
-   * @param attrs
-   * @param sourceIndex
-   */
-  protected setTraitsFromBody?: (item: CatalogItemType, body: string) => void;
 
   /**
    * Is this node the first column of a two-column table where the second
@@ -422,25 +400,15 @@ export default abstract class ChartCustomComponent<
 
     const columnTitles = filterOutUndefined(
       (nodeAttrs["column-titles"] || "").split(",").map(s => {
-        const [a, b] = rsplit2(s, ":");
-        if (a && b) {
-          return { name: a, title: b };
-        } else {
-          const title = a;
-          return title;
-        }
+        const [name, title] = rsplit2(s, ":");
+        return name ? { name, title } : undefined;
       })
     );
 
     const columnUnits = filterOutUndefined(
       (nodeAttrs["column-units"] || "").split(",").map(s => {
-        const [a, b] = rsplit2(s, ":");
-        if (a && b) {
-          return { name: a, units: b };
-        } else {
-          const units = a;
-          return units;
-        }
+        const [name, units] = rsplit2(s, ":");
+        return name ? { name, units } : undefined;
       })
     );
 
@@ -465,22 +433,6 @@ export default abstract class ChartCustomComponent<
       previewXLabel: nodeAttrs["preview-x-label"],
       yColumns
     };
-  }
-
-  /**
-   * A helper method to create a shareable reference to an item.
-   */
-  async createItemReference(
-    sourceItem: CatalogItemType
-  ): Promise<CatalogItemType | undefined> {
-    const terria = sourceItem.terria;
-    const ref = new SplitItemReference(createGuid(), terria);
-    ref.setTrait(CommonStrata.user, "splitSourceItemId", sourceItem.uniqueId);
-    await ref.loadReference();
-    if (ref.target) {
-      terria.addModel(ref);
-      return ref.target as CatalogItemType;
-    }
   }
 }
 

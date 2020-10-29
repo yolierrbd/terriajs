@@ -6,7 +6,6 @@ import ChartCustomComponent, {
 } from "./ChartCustomComponent";
 import { BaseModel } from "../../Models/Model";
 import createGuid from "terriajs-cesium/Source/Core/createGuid";
-import SplitItemReference from "../../Models/SplitItemReference";
 interface SOSChartCustomComponentAttributes
   extends ChartCustomComponentAttributes {
   name?: string;
@@ -33,15 +32,6 @@ export default class SOSChartCustomComponent extends ChartCustomComponent<
       createGuid()
     ) as SensorObservationServiceCatalogItem;
   }
-
-  constructShareableCatalogItem = async (
-    id: string | undefined,
-    context: ProcessNodeContext,
-    sourceReference: BaseModel | undefined
-  ) =>
-    this.createItemReference(
-      context.catalogItem as SensorObservationServiceCatalogItem
-    );
 
   protected setTraitsFromAttrs(
     item: SensorObservationServiceCatalogItem,

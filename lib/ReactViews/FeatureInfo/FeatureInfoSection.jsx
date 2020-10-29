@@ -486,18 +486,11 @@ function applyFormatsInPlace(properties, formats) {
         !defined(formats[key].type) ||
         (defined(formats[key].type) && formats[key].type === "number")
       ) {
-        runInAction(() => {
-          properties[key] = formatNumberForLocale(
-            properties[key],
-            formats[key]
-          );
-        });
+        properties[key] = formatNumberForLocale(properties[key], formats[key]);
       }
       if (defined(formats[key].type)) {
         if (formats[key].type === "dateTime") {
-          runInAction(() => {
-            properties[key] = formatDateTime(properties[key], formats[key]);
-          });
+          properties[key] = formatDateTime(properties[key], formats[key]);
         }
       }
     }

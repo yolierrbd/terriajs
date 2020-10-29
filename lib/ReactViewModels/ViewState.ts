@@ -358,8 +358,6 @@ export default class ViewState {
         if (defined(pickedFeatures)) {
           this.featureInfoPanelIsVisible = true;
           this.featureInfoPanelIsCollapsed = false;
-        } else {
-          this.featureInfoPanelIsVisible = false;
         }
       }
     );

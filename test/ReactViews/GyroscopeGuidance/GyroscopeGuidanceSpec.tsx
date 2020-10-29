@@ -24,7 +24,7 @@ describe("GyroscopeGuidance", function() {
   });
 
   describe("with basic props", function() {
-    it("renders with 1 button", function() {
+    it("renders with 3 buttons", function() {
       act(() => {
         testRenderer = create(
           <GyroscopeGuidance
@@ -37,7 +37,7 @@ describe("GyroscopeGuidance", function() {
 
       const buttons = testRenderer.root.findAllByType(MapIconButton);
       expect(buttons.length).toBeTruthy();
-      expect(buttons.length).toEqual(1);
+      expect(buttons.length).toEqual(3);
     });
   });
 });

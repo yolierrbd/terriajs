@@ -9,33 +9,35 @@
  * TODO: loop through configparameters for ability to customise at runtime
  * , then add docs for customisation
  */
+import React, { useEffect } from "react";
+import { withTheme, useTheme } from "styled-components";
+import PropTypes from "prop-types";
+import { useTranslation } from "react-i18next";
 import { autorun } from "mobx";
 import { observer } from "mobx-react";
-import PropTypes from "prop-types";
-import React, { useEffect } from "react";
-import { useTranslation } from "react-i18next";
-import { useTheme, withTheme } from "styled-components";
-import Box from "../../Styled/Box";
-import Button from "../../Styled/Button";
-import Spacing from "../../Styled/Spacing";
-import Text from "../../Styled/Text";
-import { parseCustomMarkdownToReactWithOptions } from "../Custom/parseCustomMarkdownToReact";
+
+import { useWindowSize } from "../Hooks/useWindowSize";
+
 import Caret from "../Generic/Caret";
 import CloseButton from "../Generic/CloseButton";
-import { useWindowSize } from "../Hooks/useWindowSize";
-import { useTranslationIfExists } from "./../../Language/languageHelpers";
+import Box from "../../Styled/Box";
+import Spacing from "../../Styled/Spacing";
+import Button from "../../Styled/Button";
+import Text from "../../Styled/Text";
+import { parseCustomMarkdownToReactWithOptions } from "../Custom/parseCustomMarkdownToReact";
+
 import {
+  getOffsetsFromTourPoint,
   calculateLeftPosition,
-  calculateTopPosition,
-  getOffsetsFromTourPoint
+  calculateTopPosition
 } from "./tour-helpers.ts";
+import TourOverlay from "./TourOverlay.jsx";
+import TourProgressDot from "./TourProgressDot.jsx";
+import TourIndicator from "./TourIndicator.jsx";
+import TourPrefaceBox from "./TourPrefaceBox.jsx";
 import TourExplanationBox, {
   TourExplanationBoxZIndex
 } from "./TourExplanationBox.jsx";
-import TourIndicator from "./TourIndicator.jsx";
-import TourOverlay from "./TourOverlay.jsx";
-import TourPrefaceBox from "./TourPrefaceBox.jsx";
-import TourProgressDot from "./TourProgressDot.jsx";
 
 /**
  * Indicator bar/"dots" on progress of tour.
@@ -262,13 +264,10 @@ const TourGrouping = observer(({ viewState, tourPoints }) => {
             indicatorOffsetTop={indicatorOffsetTop}
             indicatorOffsetLeft={indicatorOffsetLeft}
           >
-            {parseCustomMarkdownToReactWithOptions(
-              useTranslationIfExists(tourPoint?.content),
-              {
-                injectTermsAsTooltips: true,
-                tooltipTerms: viewState.terria.configParameters.helpContentTerms
-              }
-            )}
+            {parseCustomMarkdownToReactWithOptions(tourPoint?.content, {
+              injectTermsAsTooltips: true,
+              tooltipTerms: viewState.terria.configParameters.helpContentTerms
+            })}
           </TourExplanation>
         );
       })}

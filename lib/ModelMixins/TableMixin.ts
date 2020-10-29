@@ -239,7 +239,7 @@ function TableMixin<T extends Constructor<Model<TableTraits>>>(Base: T) {
 
       const xAxis: ChartAxis = {
         scale: xColumn.type === TableColumnType.time ? "time" : "linear",
-        units: xColumn.units
+        units: xColumn.traits.units
       };
 
       return filterOutUndefined(
@@ -266,14 +266,14 @@ function TableMixin<T extends Constructor<Model<TableTraits>>>(Base: T) {
 
           return {
             item: this,
-            name: yColumn.title,
+            name: yColumn.traits.title || yColumn.name,
             categoryName: this.name,
             key: `key${this.uniqueId}-${this.name}-${yColumn.name}`,
             type: "line",
             xAxis,
             points,
             domain: calculateDomain(points),
-            units: yColumn.units,
+            units: yColumn.traits.units,
             isSelectedInWorkbench: line.isSelectedInWorkbench,
             showInChartPanel: this.show && line.isSelectedInWorkbench,
             updateIsSelectedInWorkbench: (isSelected: boolean) => {

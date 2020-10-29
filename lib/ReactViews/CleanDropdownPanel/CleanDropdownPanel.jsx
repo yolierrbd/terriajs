@@ -8,12 +8,13 @@
 
 import React from "react";
 import createReactClass from "create-react-class";
+import classNames from "classnames";
 // import Icon from "../../Icon";
 import InnerPanel from "../Map/Panels/InnerPanel";
 import BaseOuterPanel from "../Map/Panels/BaseOuterPanel";
 
 // import Styles from "./panel.scss";
-import Box from "../../Styled/Box";
+import Styles from "../Map/Panels/panel.scss";
 
 // import defined from "terriajs-cesium/Source/Core/defined";
 
@@ -74,9 +75,8 @@ const CleanDropdownPanel = createReactClass({
 
   render() {
     return (
-      <Box
-        styledWidth={"auto"}
-        className={this.props.theme.outer}
+      <div
+        className={classNames(Styles.panel, this.props.theme.outer)}
         css={`
           // unfortunately this is probably the quickest way to deal with the
           // mix of scss+styled-components atm
@@ -108,7 +108,7 @@ const CleanDropdownPanel = createReactClass({
             {this.props.children}
           </InnerPanel>
         </If>
-      </Box>
+      </div>
     );
   }
 });

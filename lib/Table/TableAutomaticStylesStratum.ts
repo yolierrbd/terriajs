@@ -102,10 +102,9 @@ export default class TableAutomaticStylesStratum extends LoadableStratum(
       return createStratumInstance(TableStyleTraits, {
         chart: createStratumInstance(TableChartStyleTraits, {
           xAxisColumn: scalarColumns[0].name,
-          lines: scalarColumns.slice(1).map((column, i) =>
+          lines: scalarColumns.slice(1).map(column =>
             createStratumInstance(TableChartLineStyleTraits, {
-              yAxisColumn: column.name,
-              isSelectedInWorkbench: i === 0 // activate only the first chart line by default
+              yAxisColumn: column.name
             })
           )
         })

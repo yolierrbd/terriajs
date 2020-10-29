@@ -3,7 +3,7 @@
 import React from "react";
 import createReactClass from "create-react-class";
 import PropTypes from "prop-types";
-import isDefined from "../../../Core/isDefined";
+import defined from "terriajs-cesium/Source/Core/defined";
 import { withTranslation } from "react-i18next";
 import Styles from "./colorscalerange-section.scss";
 
@@ -72,8 +72,9 @@ const ColorScaleRangeSection = createReactClass({
       });
       return;
     }
-    this.props.item.setTrait("user", "colorScaleMinimum", min);
-    this.props.item.setTrait("user", "colorScaleMaximum", max);
+
+    this.props.item.colorScaleMinimum = min;
+    this.props.item.colorScaleMaximum = max;
   },
 
   changeRangeMin(event) {
@@ -90,11 +91,7 @@ const ColorScaleRangeSection = createReactClass({
 
   render() {
     const item = this.props.item;
-    if (
-      !isDefined(item.colorScaleMinimum) ||
-      !isDefined(item.colorScaleMaximum) ||
-      !item.supportsColorScaleRange
-    ) {
+    if (!defined(item.colorScaleMinimum) || !defined(item.colorScaleMaximum)) {
       return null;
     }
     const { t } = this.props;

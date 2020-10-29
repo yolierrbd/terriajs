@@ -28,19 +28,22 @@ export const defaultTourPoints = [
     appRefName: "LocationSearchInput",
     priority: 30,
     offsetLeft: 225,
-    content: "tour.locationSearchInput.content"
+    content:
+      "## Location search\n\nEnter a locality or address to easily locate a point of interest on the map."
   },
   {
     appRefName: "ExploreMapDataButton",
     priority: 10,
     offsetLeft: 70,
-    content: "tour.exploreMapDataButton.content"
+    content:
+      "## Explore map data\n\nBrowse the catalogue of available data and add it to the map here. You can add multiple datasets at any one time, and you’ll see them listed down below in the Workbench."
   },
   {
     appRefName: "SidePanelUploadButton",
     priority: 20,
     offsetLeft: 70,
-    content: "tour.sidePanelUploadButton.content"
+    content:
+      "## Upload Data\n\nYou can upload your own data to the map to view it with other data sets. Upload a file or link to an existing online data set or data service. Supported data formats include CSV, GeoJSON, KML, GPX and CZML."
   },
   {
     appRefName: "MenuBarMapSettingsButton",
@@ -48,7 +51,8 @@ export const defaultTourPoints = [
     caretOffsetLeft: TOUR_WIDTH - 25,
     offsetLeft: -TOUR_WIDTH - 30,
     positionLeft: RelativePosition.RECT_RIGHT,
-    content: "tour.menuBarMapSettingsButton.content"
+    content:
+      "## Map Settings\n\nCustomise map options such as base maps, map image quality or remove the ground (terrain) to interrogate underground datasets."
   },
   {
     appRefName: "MenuBarStoryButton",
@@ -56,7 +60,8 @@ export const defaultTourPoints = [
     caretOffsetLeft: TOUR_WIDTH - 25,
     offsetLeft: -TOUR_WIDTH - 10,
     positionLeft: RelativePosition.RECT_RIGHT,
-    content: "tour.menuBarStoryButton.content"
+    content:
+      "## Stories\n\nStories allow you to add contextual information to a dataset to bring a narrative to life. Create your own data story using the Story Editor, and share it via the ‘Share’ panel once you’re done."
   },
   {
     appRefName: "MapNavigationCompassOuterRing",
@@ -69,7 +74,8 @@ export const defaultTourPoints = [
     offsetLeft: -TOUR_WIDTH - 15,
     positionTop: RelativePosition.RECT_TOP,
     positionLeft: RelativePosition.RECT_LEFT,
-    content: "tour.mapNavigationCompassOuterRing.content"
+    content:
+      "## View controls\n\nHere you can change the view of the map. You can change the orientation of your view by using the outer ring, and you can tilt the camera angle using the inner ring. Double click to reset the view."
   },
   {
     appRefName: "MapNavigationSplitterIcon",
@@ -82,6 +88,7 @@ export const defaultTourPoints = [
     offsetLeft: -TOUR_WIDTH - 15,
     positionTop: RelativePosition.RECT_TOP,
     positionLeft: RelativePosition.RECT_LEFT,
-    content: "tour.mapNavigationSplitterIcon.content"
+    content:
+      "## Compare\n\nA powerful feature of Terria is the ability to compare datasets using a split screen view. For datasets with a time-series/4D component, you can compare dates backwards and forwards in time using the date picker."
   }
 ];

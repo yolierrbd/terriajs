@@ -107,7 +107,7 @@ export const GLYPHS = {
   playInverted: require("../../wwwroot/images/icons/play-inverted.svg"),
   video: require("../../wwwroot/images/icons/video.svg"),
   compare: require("../../wwwroot/images/icons/compare.svg"),
-  lifesaver: require("../../wwwroot/images/icons/help-2.svg"),
+  newHelp: require("../../wwwroot/images/icons/help-2.svg"),
   geolocationThick: require("../../wwwroot/images/icons/location-thick.svg"),
   minusThick: require("../../wwwroot/images/icons/zoom-minus.svg"),
   plusThick: require("../../wwwroot/images/icons/zoom-plus.svg"),
@@ -121,8 +121,7 @@ export const GLYPHS = {
   accordionClose: require("../../wwwroot/images/icons/accordion-close.svg"),
   editor: require("../../wwwroot/images/icons/editor.svg"),
   viewStory: require("../../wwwroot/images/icons/view-story.svg"),
-  editStory: require("../../wwwroot/images/icons/edit-story.svg"),
-  questionMark: require("../../wwwroot/images/icons/questionmark.svg")
+  editStory: require("../../wwwroot/images/icons/edit-story.svg")
 };
 
 export const Icon = createReactClass({
